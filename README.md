@@ -107,10 +107,40 @@ For those interested in a particular analysis, the following scripts are provide
   * Supramarginal gyrus: ```-lv 1371 -rv 1789```
 * ```run_seed_fc.py``` - implements seed-based correlation analysis for selected seed locations. The same seeds from the CAP analysis are used, and the parameters to specify seed locations are identical.
 * ```run_lag_projection.py``` - implements the lag projection algorithm described by Mitra et al. (2014). This is an inferior Python implementation of the excellent MATLAB implementation provided in https://github.com/ryraut/lag-code . Special thanks to the authors for making this code publically available.
+* ```run_phase_delay_map.py``` - extracts the phase-delay map calculations used for cPCA figures from the notebook workflow into a command-line script (cycle duration, spatial phase range, and seconds-per-bin conversion).
 * ```run_qpp.py``` - implements the template-averaging quasiperiodic (QPP) algorithm described in Majeed et al. (2009). This script was modified from the excellent implementation in the CPAC toolbox (https://github.com/BIDS-Apps/CPAC). Depending on the parameters (particularly, the number of repeats of the algorithm), this could take a while to run. To speed up the process, reduce the number of repeats of the algorithm (set at 10).
 * ```run_hmm.py``` - implements a Gaussian Mixture Hidden Markov Model (GM-HMM) using the ```hmmlearn``` package. To ease the computational burden, PCA is performed as a dimension-reduction step before estimating the GM-HMM. 
 * ```run_global_signal_analysis.py``` - this script performs some simple analytics on the mean global time course ('global signal'). First, it does a peak-averaing procedure to provide a spatiotemporal view of the pattern of BOLD activity around peaks of the global signal. Second, it performs a regression of each vertex time course on the global signal time course to visualize the relationship between the global signal time course and the time course at each vertex.
 * ```run_peak_average.py``` - this is a generic script that performs peak averaging of BOLD activity around peaks of an arbitrary input time course, specified as a one-dimensional array in .txt format.
+
+## How phase-delay maps are computed in this project
+
+Two phase/lag representations appear in this repository:
+
+1) **cPCA phase-delay maps** (Figure 2 style maps)
+
+- Complex PCA is run after applying a Hilbert transform to the normalized BOLD data (`run_main_pca.py`).
+- The spatial phase-delay map is the angle of each complex spatial loading (`np.angle`), written as `*_complex_ang` outputs.
+- In the notebook (`figures.ipynb`), temporal phase of each cPCA score time course is unwrapped (`np.unwrap(np.angle(...))`) to estimate average cycle duration.
+- Spatial phase range (fraction of `2π`) is multiplied by cycle duration to obtain an approximate lead-lag duration in seconds.
+- For plotting, polar tick labels are converted from radians to seconds using this cycle length.
+
+2) **Lag projection maps** (Mitra-style average delay map)
+
+- Group time series are z-scored.
+- A lagged covariance/correlation tensor is computed across lag shifts.
+- Peak lag is estimated by parabolic interpolation around the extremum of each pairwise lag-correlation function.
+- Pairwise lag values outside a limit are discarded, then lag projection is computed as:
+  - unweighted vertex-wise mean lag;
+  - weighted version using inverse-error weighting based on zero-lag correlation magnitude.
+
+In short: cPCA phase-delay maps come from **complex loading angles**, while lag projection maps come from **pairwise lagged-correlation peak delays**.
+
+Example command:
+
+```
+python run_phase_delay_map.py -i results/pca_rest_complex_results.pkl -o results/phase_delay_map_metrics.pkl --tr 0.72 --n_bins 30 --n_comps 3
+```
 
 
 # References
@@ -120,7 +150,5 @@ Majeed, W., Magnuson, M., Hasenkamp, W., Schwarb, H., Schumacher, E. H., Barsalo
 Mitra, A., Snyder, A. Z., Hacker, C. D., & Raichle, M. E. (2014). Lag structure in resting-state fMRI. Journal of Neurophysiology, 111(11), 2374–2391. https://doi.org/10.1152/jn.00804.2013
 
 Vos de Wael, R., Benkarim, O., Paquola, C., Lariviere, S., Royer, J., Tavakol, S., Xu, T., Hong, S.-J., Langs, G., Valk, S., Misic, B., Milham, M., Margulies, D., Smallwood, J., & Bernhardt, B. C. (2020). BrainSpace: A toolbox for the analysis of macroscale gradients in neuroimaging and connectomics datasets. Communications Biology, 3(1), 1–10. https://doi.org/10.1038/s42003-020-0794-7
-
-
 
 
