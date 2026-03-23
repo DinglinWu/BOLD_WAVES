@@ -142,6 +142,27 @@ Example command:
 python run_phase_delay_map.py -i results/pca_rest_complex_results.pkl -o results/phase_delay_map_metrics.pkl --tr 0.72 --n_bins 30 --n_comps 3
 ```
 
+### pkl format used by `run_phase_delay_map.py`
+
+Input `pca_rest_complex_results.pkl` is expected to be a Python pickle `dict` with:
+
+- `pca`: dictionary containing at least:
+  - `pc_scores`: complex-valued array, shape `(n_timepoints, n_components)`
+  - `Va`: complex-valued array, shape `(n_components, n_vertices)`
+- `metadata`: list used by other scripts (typically `[input_type, hdr, zero_mask]`)
+
+Output `phase_delay_map_metrics.pkl` is a Python pickle `dict`:
+
+- top-level keys: `comp0`, `comp1`, ... up to `n_comps-1`
+- each component key maps to:
+  - `avg_cycle_timepoints` (float)
+  - `avg_cycle_seconds` (float)
+  - `spatial_phase_range_ratio` (float)
+  - `phase_weights_duration_timepoints` (float)
+  - `phase_weights_duration_seconds` (float)
+  - `seconds_per_bin` (float)
+  - `phase_weights_radians` (1D numpy array of length `n_vertices`)
+
 
 # References
 
@@ -150,5 +171,4 @@ Majeed, W., Magnuson, M., Hasenkamp, W., Schwarb, H., Schumacher, E. H., Barsalo
 Mitra, A., Snyder, A. Z., Hacker, C. D., & Raichle, M. E. (2014). Lag structure in resting-state fMRI. Journal of Neurophysiology, 111(11), 2374–2391. https://doi.org/10.1152/jn.00804.2013
 
 Vos de Wael, R., Benkarim, O., Paquola, C., Lariviere, S., Royer, J., Tavakol, S., Xu, T., Hong, S.-J., Langs, G., Valk, S., Misic, B., Milham, M., Margulies, D., Smallwood, J., & Bernhardt, B. C. (2020). BrainSpace: A toolbox for the analysis of macroscale gradients in neuroimaging and connectomics datasets. Communications Biology, 3(1), 1–10. https://doi.org/10.1038/s42003-020-0794-7
-
 
